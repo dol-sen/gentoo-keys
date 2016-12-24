@@ -162,6 +162,7 @@ class Actions(ActionBase):
         if args.uid is None:
             args.uid = []
         gkey = self.seedhandler.new(args, checkgkey=True)
+        self._set_category(args.category)
         if not gkey:
             return (False, ["Failed to create a valid GKEY instance.",
                 "Check for invalid data entries"])
@@ -279,7 +280,7 @@ class Actions(ActionBase):
         # fill in code here
         if not args.category:
             args.category = 'gentoo'
-        self.category = args.category
+        self._set_category(args.category)
         if args.keydir:
             self.gpg.set_keydir(args.keydir, "list-keys")
             self.gpg.set_keyseedfile()
@@ -348,7 +349,7 @@ class Actions(ActionBase):
                     return (False, ["Search failed for search term"])
             # get confirmation
             # fill in code here
-            self.category = args.category
+            self._set_category(args.category)
             for gkey in gkeys:
                 self.gpg.set_keydir(gkey.keydir, "recv-keys")
                 self.gpg.set_keyseedfile()
@@ -405,7 +406,7 @@ class Actions(ActionBase):
             return (False, [_unicode("Please specify seeds category.")])
         self.logger.debug(_unicode("ACTIONS: checkkey; args: %s") % _unicode(args))
         seeds = self.seedhandler.load_category(args.category)
-        self.category = args.category
+        self._set_category(args.category)
         results = {}
         failed = defaultdict(list)
         kwargs = self.seedhandler.build_gkeydict(args)
@@ -455,7 +456,7 @@ class Actions(ActionBase):
             return (False, ["Please specify seeds category."])
         self.logger.debug(_unicode("ACTIONS: speccheck; args: %s")
             % _unicode(args))
-        self.category = args.category
+        self._set_category(args.category)
         catdir, keyresults = self.keyhandler.determine_keys(args)
         self.logger.debug(_unicode("ACTIONS: speccheck; catdir = %s") % catdir)
         results = {}
@@ -633,6 +634,7 @@ class Actions(ActionBase):
         self.logger.debug(_unicode("ACTIONS: removekey; kwargs: %s")
             % _unicode(kwargs))
         seeds = self.seedhandler.load_category(args.category)
+        self._set_category(args.category)
         messages = []
         if args.nick == '*':
             self.output([''],_unicode('Remove All keys in category: %s')
@@ -728,9 +730,9 @@ class Actions(ActionBase):
         '''Lists the installed key directories'''
         if args.category:
             keyring = self.config.get_key('keyring')
-            catdir = os.path.join(keyring, args.category)
         else:
             return (False, ["Please specify a category."])
+        catdir = self._set_category(args.category)
         self.logger.debug("ACTIONS: installed; catdir = %s" % catdir)
         installed_keys = []
         try:
@@ -804,7 +806,7 @@ class Actions(ActionBase):
     def _verify(self, args, key, messages=None):
         if messages == None:
             messages = []
-        self.category = args.category
+        self._set_category(args.category)
         filepath, signature  = args.filename, args.signature
         timestamp_path = None
         isurl = success = verified = False
@@ -940,9 +942,9 @@ class Actions(ActionBase):
         else:
             nicks = args.nick
         args.category = 'sign'
+        self._set_category(args.category)
         # load our installed signing keys db
         self.seeds = self.seedhandler.load_category('sign', nicks)
-        self.category = args.category
         if not self.seeds.seeds:
             return (False, ['No installed keys, try installkey action.', ''])
         keydir  = self.config.get_key("sign", "keydir")
@@ -986,7 +988,7 @@ class Actions(ActionBase):
         self.logger.debug(_unicode("ACTIONS: refreshkey; args: %s")
             % _unicode(args))
         seeds = self.seedhandler.load_category(args.category, refresh=True)
-        self.category = args.category
+        self._set_category(args.category)
         results = {}
         kwargs = self.seedhandler.build_gkeydict(args)
         keyresults = seeds.list(**kwargs)
