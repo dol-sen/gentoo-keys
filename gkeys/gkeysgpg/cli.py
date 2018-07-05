@@ -46,7 +46,7 @@ class Main(CliBase):
             'epilog': '''CAUTION: adding UNTRUSTED keys can be HAZARDOUS to your system!'''
         }
         self.cli_config['Base_Options'].extend(["armor", "clearsign", "dash",
-            "detachsign", "statusfd", "user"])
+            "detachsign", "keyid_format", "statusfd", "user"])
         self.cli_config['Base_Options'].extend(KEY_OPTIONS)
         self.cli_config['Base_Options'].extend(["category"])
         self.version = __version__
@@ -137,6 +137,11 @@ class Main(CliBase):
             help='verify a signature')
 
 ### These are for gpg command compatibilty only
+    @staticmethod
+    def _option_keyid_format(parser=None):
+        parser.add_argument('--keyid-format', dest='keyid-format', default=None,
+            help='The keyid format of the gpg key to search for')
+
     @staticmethod
     def _option_statusfd(parser=None):
         parser.add_argument('--status-fd', dest='statusfd', default=None,
